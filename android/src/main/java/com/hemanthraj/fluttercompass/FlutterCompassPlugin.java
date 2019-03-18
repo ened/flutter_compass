@@ -7,6 +7,8 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 
 
+import java.util.Map;
+
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.EventChannel.EventSink;
 import io.flutter.plugin.common.EventChannel.StreamHandler;
@@ -30,8 +32,12 @@ public final class FlutterCompassPlugin implements StreamHandler {
 
 
     public void onListen(Object arguments, EventSink events) {
+        @SuppressWarnings("unchecked") final Map<String, Object> argumentMap = (Map<String, Object>) arguments;
+
+        int sensorDelay = mapSensorDelay(argumentMap.get("delay"));
+
         sensorEventListener = createSensorEventListener(events);
-        sensorManager.registerListener(sensorEventListener, this.sensor, SensorManager.SENSOR_DELAY_UI);
+        sensorManager.registerListener(sensorEventListener, this.sensor, sensorDelay);
     }
 
     public void onCancel(Object arguments) {
@@ -63,4 +69,21 @@ public final class FlutterCompassPlugin implements StreamHandler {
         sensor = this.sensorManager.getDefaultSensor(sensorType);
     }
 
+    private int mapSensorDelay(Object delay) {
+        if (!(delay instanceof Integer)) {
+            return SensorManager.SENSOR_DELAY_UI;
+        }
+
+        switch ((Integer) delay) {
+            case 0:
+                return SensorManager.SENSOR_DELAY_FASTEST;
+            case 1:
+                return SensorManager.SENSOR_DELAY_GAME;
+            case 2:
+                return SensorManager.SENSOR_DELAY_UI;
+            case 3:
+            default:
+                return SensorManager.SENSOR_DELAY_NORMAL;
+        }
+    }
 }
